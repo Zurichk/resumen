@@ -22,3 +22,7 @@ docker-compose up
 
 set FLASK_APP=app
 set FLASK_ENV=development
+
+
+git add .
+git commit -m "3era Subida"
