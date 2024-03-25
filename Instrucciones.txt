@@ -1,0 +1,24 @@
+Creamos el entorno:
+py -m venv GeminiAPI
+
+
+Activamos el entorno:
+.\GeminiAPI\Scripts\activate
+
+Copio el archivo requirements.txt del ejercicio anterior dentro del entorno \docker2
+entramos al entorno cd docker2
+python -m pip install -r requirements.txt
+
+
+desde la carpeta donde esta el codigo
+flask run
+
+Ruta para ejecutar en docker Linux(donde esté el archivo docker-compose.yml):
+C:/Users/zuric/Documents/EntornosPython/Docker2
+
+docker-compose up
+
+.\docker3\Scripts\activate
+
+set FLASK_APP=app
+set FLASK_ENV=development
