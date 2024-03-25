@@ -1,7 +1,17 @@
-from flask import Flask, render_template, request
+import json
+from flask import Flask, request, jsonify, render_template, abort
 import google.generativeai as genai
+import os
 
-app = Flask(__name__)
+
+# Definir la ruta donde se guardarán los archivos cargados
+if os.environ.get('DOCKER', '') == "yes":
+    UPLOAD_FOLDER = '/usr/src/app/subidas'
+else:
+    UPLOAD_FOLDER = 'subidas'
+
+app = Flask(__name__, static_url_path='/static')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 API_KEY = 'AIzaSyAoytfeTKTKdP4jnOikfUHJeLY_VFpFtb8'
 
@@ -30,11 +40,10 @@ def generar_resumen(titulo, descripcion, comentarios):
             'max_output_tokens': 8000
         }
     )
-
     return completion.text
 
 
-@app.route('/')
+@app.route("/")
 def home():
     return render_template('index.html')
 
@@ -51,6 +60,43 @@ def resumir():
     except Exception as e:
         error_message = f"Error al generar el resumen: {str(e)}"
         return render_template('error.html', error_message=error_message)
+
+
+@app.route('/enviar_datos_bc', methods=['POST'])
+def enviar_datos_bc():
+    # Comprobar si la petición tiene los datos en formato JSON
+    if not request.is_json:
+        return jsonify({'error': 'No JSON object in the request.'}), 400
+
+    # Leer los datos del JSON
+    datos = request.get_json()
+    print(datos)
+
+    # Corregir los nombres de las características
+    # for dic in datos:
+    #     if 'Precio (â‚¬)' in dic:
+    #         dic['Precio (€)'] = dic.pop('Precio (â‚¬)')
+    #     if 'Superficie (mÂ²)' in dic:
+    #         dic['Superficie (m²)'] = dic.pop('Superficie (mÂ²)')
+
+    # Validar los datos (aquí podrías agregar más validaciones)
+    if not isinstance(datos, list):
+        print({'error': 'Los datos deben ser una lista.'})
+        return jsonify({'error': 'Los datos deben ser una lista.'}), 400
+
+    # # Convertir los datos a DataFrame
+    # X = pd.DataFrame(datos)
+    # X[num_cols] = estandarizador.transform(X[num_cols])
+    # print(X.to_string(index=False))
+
+    # REalizar el resumen
+    try:
+        resumen = generar_resumen(
+            datos[0]['Titulo'], datos[0]['Descripcion'], datos[0]['Comentarios'])
+        return jsonify({'resumen': resumen})
+    except Exception as e:
+        print(str(e))
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
